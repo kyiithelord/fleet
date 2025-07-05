@@ -1,15 +1,20 @@
-import React, { useState } from "react";
-import VehicleList from "./components/VehicleList";
-import VehicleForm from "./components/VehicleForm";
+import VehicleList from './components/VehicleList';
+import OdooVehicles from './components/OdooVehicles';
 
 function App() {
-  const [reloadFlag, setReloadFlag] = useState(false);
-
   return (
-    <div>
+    <div style={{ padding: '1rem' }}>
       <h1>Fleet Maintenance Tracker</h1>
-      <VehicleForm onCreated={() => setReloadFlag((f) => !f)} />
-      <VehicleList key={reloadFlag} />
+
+      <section style={{ marginTop: '2rem' }}>
+        <h2>Local Database Vehicles</h2>
+        <VehicleList />
+      </section>
+
+      <section style={{ marginTop: '2rem' }}>
+        <h2>Odoo Vehicles</h2>
+        <OdooVehicles />
+      </section>
     </div>
   );
 }
