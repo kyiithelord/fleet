@@ -1,50 +1,82 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import { fetchVehicles, createVehicle } from "../api";
 
-const API_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-
-const VehicleList = () => {
+function VehicleList() {
   const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ name: "", license_plate: "" });
+
+  const loadVehicles = () => {
+    fetchVehicles()
+      .then(setVehicles)
+      .catch((err) => setError(err.message));
+  };
 
   useEffect(() => {
-    const fetchVehicles = async () => {
-      try {
-        const response = await fetch(`${API_URL}/vehicles/odoo`);
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-        const data = await response.json();
-        setVehicles(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVehicles();
+    loadVehicles();
   }, []);
 
-  if (loading) return <p>Loading vehicles...</p>;
-  if (error) return <p>Error loading vehicles: {error}</p>;
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await createVehicle(form);
+      setForm({ name: "", license_plate: "" });
+      loadVehicles(); // reload after adding
+    } catch (err) {
+      setError("❌ Failed to create vehicle");
+      console.error(err);
+    }
+  };
 
   return (
-    <div>
-      <h2>Odoo Vehicles</h2>
+    <div className="max-w-xl mx-auto p-4 bg-white shadow rounded-xl">
+      <h2 className="text-xl font-bold mb-4">Local Database Vehicles</h2>
+
+      <form onSubmit={handleSubmit} className="mb-4 space-y-2">
+        <input
+          name="name"
+          placeholder="Vehicle Name"
+          value={form.name}
+          onChange={handleChange}
+          required
+          className="border px-3 py-2 rounded w-full"
+        />
+        <input
+          name="license_plate"
+          placeholder="License Plate"
+          value={form.license_plate}
+          onChange={handleChange}
+          required
+          className="border px-3 py-2 rounded w-full"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          ➕ Add Vehicle
+        </button>
+      </form>
+
+      {error && <p className="text-red-600">{error}</p>}
+
       {vehicles.length === 0 ? (
         <p>No vehicles found.</p>
       ) : (
-        <ul>
-          {vehicles.map((vehicle, index) => (
-            <li key={index}>
-              {vehicle.name} - {vehicle.license_plate}
+        <ul className="list-disc list-inside space-y-1">
+          {vehicles.map((v, i) => (
+            <li key={i}>
+              {v.name} - {v.license_plate}
             </li>
           ))}
         </ul>
       )}
     </div>
   );
-};
+}
 
 export default VehicleList;
